@@ -7,10 +7,10 @@ import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+//import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.core.app.ActivityCompat
+//import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.camera.view.PreviewView
 import java.text.SimpleDateFormat
@@ -29,6 +29,7 @@ class VideoService(
 ) {
     private var imageCapture: ImageCapture? = null
     private var cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+    private var cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
     companion object {
         private const val TAG = "VideoService"
@@ -47,11 +48,11 @@ class VideoService(
     /**
      * Solicita los permisos necesarios para la cámara.
      */
-    fun solicitarPermisos(activity: android.app.Activity) {
+    /*fun solicitarPermisos(activity: android.app.Activity) {
         ActivityCompat.requestPermissions(
             activity, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
         )
-    }
+    }*/
 
     /**
      * Configura e inicia la vista previa de la cámara.
@@ -75,8 +76,8 @@ class VideoService(
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                 .build()
 
-            // Seleccionar la cámara trasera por defecto
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            // Seleccionar la cámara actual (trasera o delantera)
+            val cameraSelector = this.cameraSelector
 
             try {
                 // Desvincular cualquier uso previo antes de volver a vincular
@@ -97,7 +98,11 @@ class VideoService(
      * Captura una imagen y la guarda en la galería.
      */
     fun takePhoto() {
-        val imageCapture = imageCapture ?: return
+        val imageCapture = imageCapture ?: run {
+            Log.e(TAG, "La cámara aún no está lista")
+            Toast.makeText(context, "Cámara no lista, intente de nuevo", Toast.LENGTH_SHORT).show()
+            return
+        }
 
         // Crear nombre del archivo basado en el tiempo actual
         val name = SimpleDateFormat(FILENAME_FORMAT, Locale.US)
@@ -144,5 +149,24 @@ class VideoService(
      */
     fun shutdown() {
         cameraExecutor.shutdown()
+    }
+
+    fun getCameraSelector(): CameraSelector {
+        return cameraSelector
+    }
+
+    fun setCameraSelector(selector: CameraSelector) {
+        cameraSelector = selector
+    }
+
+    /**
+     * Alterna entre la cámara frontal y trasera.
+     */
+    fun toggleCamera() {
+        cameraSelector = if (cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
+            CameraSelector.DEFAULT_FRONT_CAMERA
+        } else {
+            CameraSelector.DEFAULT_BACK_CAMERA
+        }
     }
 }

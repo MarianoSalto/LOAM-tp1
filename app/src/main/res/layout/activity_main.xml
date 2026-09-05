@@ -33,29 +33,37 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" >
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnFragmentA"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:backgroundTint="#ffffff"
-            android:text="Navegar a A"
-            android:textColor="#000000" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFragmentB"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="#ffffff"
-            android:text="Navegar a B"
-            android:textColor="#000000" />
+            android:textColor="#000000"
+            app:icon="@drawable/logo_camara"
+            app:iconSize="25pt"
+            app:iconTint="#000000" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnFragmentA"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#ffffff"
+            android:textColor="#000000"
+            app:icon="@drawable/logo_casa"
+            app:iconSize="25pt"
+            app:iconTint="#000000" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFragmentC"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="#ffffff"
-            android:text="Navegar a C"
-            android:textColor="#000000" />
-
+            android:textColor="#000000"
+            app:icon="@drawable/logo_mapa"
+            app:iconTint="#000000"
+            app:iconSize="25pt"
+            />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
