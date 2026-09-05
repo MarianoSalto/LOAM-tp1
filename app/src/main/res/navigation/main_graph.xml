@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/fragment_a"
-        android:name="com.example.primertpdeappmoviles.FragmentA"
+        android:name="com.example.primertpdeappmoviles.presentation.fragment.FragmentA"
         android:label="fragment_a"
         tools:layout="@layout/fragment_a" >
         <action
@@ -16,11 +16,14 @@
         <action
             android:id="@+id/action_fragment_a_to_fragment_c"
             app:destination="@id/fragment_c" />
+        <action
+            android:id="@+id/action_fragment_a_to_fragmentD"
+            app:destination="@id/fragmentD" />
     </fragment>
 
     <fragment
         android:id="@+id/fragment_b"
-        android:name="com.example.primertpdeappmoviles.FragmentB"
+        android:name="com.example.primertpdeappmoviles.presentation.fragment.FragmentB"
         android:label="fragment_b"
         tools:layout="@layout/fragment_b" >
         <argument
@@ -33,11 +36,14 @@
         <action
             android:id="@+id/action_fragment_b_to_fragment_c"
             app:destination="@id/fragment_c" />
+        <action
+            android:id="@+id/action_fragment_b_to_fragmentD"
+            app:destination="@id/fragmentD" />
     </fragment>
 
     <fragment
         android:id="@+id/fragment_c"
-        android:name="com.example.primertpdeappmoviles.FragmentC"
+        android:name="com.example.primertpdeappmoviles.presentation.fragment.FragmentC"
         android:label="fragment_c"
         tools:layout="@layout/fragment_c" >
         <action
@@ -46,6 +52,24 @@
         <action
             android:id="@+id/action_fragment_c_to_fragment_b"
             app:destination="@id/fragment_b" />
+        <action
+            android:id="@+id/action_fragment_c_to_fragmentD"
+            app:destination="@id/fragmentD" />
+    </fragment>
+    <fragment
+        android:id="@+id/fragmentD"
+        android:name="com.example.primertpdeappmoviles.presentation.fragment.FragmentD"
+        android:label="fragmento_d"
+        tools:layout="@layout/fragment_d" >
+        <action
+            android:id="@+id/action_fragmentD_to_fragment_b"
+            app:destination="@id/fragment_b" />
+        <action
+            android:id="@+id/action_fragmentD_to_fragment_a"
+            app:destination="@id/fragment_a" />
+        <action
+            android:id="@+id/action_fragmentD_to_fragment_c"
+            app:destination="@id/fragment_c" />
     </fragment>
 
 

@@ -1,6 +1,6 @@
-package com.example.primertpdeappmoviles
+package com.example.primertpdeappmoviles.presentation.fragment
 
-import android.Manifest//Se va a utilizar para dar permiso al acceso a la camara
+import android.Manifest
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,7 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.example.primertpdeappmoviles.databinding.FragmentBBinding
-import com.example.primertpdeappmoviles.services.VideoService//importe mi servicio video, se encuentra la implentación de la camara
+import com.example.primertpdeappmoviles.services.VideoService
 
 class FragmentB : Fragment() {
 

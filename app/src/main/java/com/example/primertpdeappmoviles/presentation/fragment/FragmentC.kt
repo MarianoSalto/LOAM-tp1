@@ -1,10 +1,11 @@
-package com.example.primertpdeappmoviles
+package com.example.primertpdeappmoviles.presentation.fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.example.primertpdeappmoviles.R
 
 class FragmentC : Fragment() {
     override fun onCreateView(

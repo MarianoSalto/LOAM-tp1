@@ -1,20 +1,27 @@
-package com.example.primertpdeappmoviles
+package com.example.primertpdeappmoviles.presentation.fragment
 
+import android.location.Location
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import com.example.primertpdeappmoviles.data.repository.LocationRepositoryImpl
+import com.example.primertpdeappmoviles.data.repository.SiniestroRepositoryImpl
 import com.example.primertpdeappmoviles.databinding.FragmentABinding
+import com.example.primertpdeappmoviles.domain.usecase.GetLocationUseCase
+import com.example.primertpdeappmoviles.domain.usecase.GuardarSiniestroUseCase
+import com.example.primertpdeappmoviles.presentation.viewmodel.SiniestroViewModel
+import com.example.primertpdeappmoviles.presentation.viewmodel.SiniestroViewModelFactory
 import com.example.primertpdeappmoviles.services.AudioService
-import com.example.primertpdeappmoviles.services.DataBaseService
 import com.example.primertpdeappmoviles.services.FlashlightService
 import com.example.primertpdeappmoviles.services.LocationService
-import com.google.android.material.button.MaterialButton
 import org.maplibre.android.MapLibre
 import org.maplibre.android.annotations.MarkerOptions
 import org.maplibre.android.camera.CameraPosition
@@ -31,8 +38,16 @@ class FragmentA : Fragment() {
     // =========================
     private lateinit var flashlightService: FlashlightService
     private lateinit var locationService: LocationService
-    private lateinit var dataBaseService: DataBaseService
     private lateinit var audioService: AudioService
+
+    private val siniestroViewModel: SiniestroViewModel by viewModels {
+        val siniestroRepo = SiniestroRepositoryImpl()
+        val locationRepo = LocationRepositoryImpl(requireContext())
+        SiniestroViewModelFactory(
+            GuardarSiniestroUseCase(siniestroRepo),
+            GetLocationUseCase(locationRepo)
+        )
+    }
 
     private lateinit var map: MapView
 
@@ -51,11 +66,12 @@ class FragmentA : Fragment() {
         // Inicializar Servicios
         flashlightService = FlashlightService(requireContext())
         locationService = LocationService(requireContext())
-        dataBaseService = DataBaseService()
         audioService = AudioService(requireContext())
 
         map = binding.mapView
         map.onCreate(savedInstanceState)
+
+        setupObservers()
 
         // =========================
         // UBICACIÓN
@@ -79,7 +95,6 @@ class FragmentA : Fragment() {
         viewLifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStop(owner: LifecycleOwner) {
                 super.onStop(owner)
-                // Apagar linterna al salir del fragmento
                 if (flashlightService.isFlashOn) {
                     toggleFlashlight(false)
                 }
@@ -87,26 +102,18 @@ class FragmentA : Fragment() {
         })
 
         // ACCIONES
-        // =========================
-        // BOTÓN LINTERNA
-        // =========================
         binding.btnLinterna.setOnClickListener {
             toggleFlashlight(!flashlightService.isFlashOn)
         }
 
-        // =========================
-        // BOTÓN MAPA
-        // =========================
         binding.btnMapa.setOnClickListener {
-            irAMiUbicacion()
+            siniestroViewModel.fetchLocation()
         }
 
-        //==== Listener Guardar ubi
         binding.btnRegistrarSiniestro.setOnClickListener {
             registrarSiniestro()
         }
 
-        //====Audio
         binding.btnStartAudio.setOnClickListener {
             if (audioService.hasAudioPermission()) {
                 iniciarGrabacion()
@@ -122,11 +129,27 @@ class FragmentA : Fragment() {
         }
     }
 
+    private fun setupObservers() {
+        siniestroViewModel.location.observe(viewLifecycleOwner) { location ->
+            if (location != null) {
+                actualizarMapaConUbicacion(location)
+            } else if (locationService.hasLocationPermission()) {
+                Toast.makeText(requireContext(), "No se pudo obtener la ubicación. Verifique el GPS.", Toast.LENGTH_LONG).show()
+            }
+        }
+
+        siniestroViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            if (isLoading) {
+                Toast.makeText(requireContext(), "Buscando ubicación exacta...", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     private fun solicitarPermisoUbicacion() {
         if (!locationService.hasLocationPermission()) {
             locationService.requestLocationPermissions(this)
         } else {
-            irAMiUbicacion()
+            siniestroViewModel.fetchLocation()
         }
     }
 
@@ -139,7 +162,7 @@ class FragmentA : Fragment() {
 
         if (requestCode == LocationService.LOCATION_PERMISSION_REQUEST_CODE) {
             if (locationService.hasLocationPermission()) {
-                irAMiUbicacion()
+                siniestroViewModel.fetchLocation()
             }
         } else if (requestCode == AudioService.REQUEST_CODE_AUDIO) {
             if (audioService.hasAudioPermission()) {
@@ -150,35 +173,7 @@ class FragmentA : Fragment() {
         }
     }
 
-    private fun irAMiUbicacion() {
-        if (!locationService.hasLocationPermission()) {
-            solicitarPermisoUbicacion()
-            return
-        }
-
-        // Primero intentamos con la última ubicación conocida (rápido)
-        locationService.getLastLocation()
-            .addOnSuccessListener { location ->
-                if (location != null) {
-                    actualizarMapaConUbicacion(location)
-                } else {
-                    // Si es null (común en emuladores), pedimos una ubicación fresca
-                    Toast.makeText(requireContext(), "Buscando ubicación exacta...", Toast.LENGTH_SHORT).show()
-                    locationService.getCurrentLocation { freshLocation ->
-                        if (freshLocation != null) {
-                            actualizarMapaConUbicacion(freshLocation)
-                        } else {
-                            Toast.makeText(requireContext(), "No se pudo obtener la ubicación. Verifique el GPS.", Toast.LENGTH_LONG).show()
-                        }
-                    }
-                }
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Error al obtener ubicación: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    private fun actualizarMapaConUbicacion(location: android.location.Location) {
+    private fun actualizarMapaConUbicacion(location: Location) {
         val miUbicacion = LatLng(location.latitude, location.longitude)
         map.getMapAsync { map ->
             map.cameraPosition = CameraPosition.Builder()
@@ -186,7 +181,7 @@ class FragmentA : Fragment() {
                 .zoom(18.0)
                 .build()
 
-            map.clear() // Limpiar marcadores anteriores
+            map.clear()
             map.addMarker(
                 MarkerOptions()
                     .position(miUbicacion)
@@ -216,25 +211,18 @@ class FragmentA : Fragment() {
             return
         }
 
-        locationService.getLastLocation()
-            .addOnSuccessListener { location ->
-                if (location == null) {
-                    // Reintento con ubicación fresca
-                    locationService.getCurrentLocation { freshLocation ->
-                        if (freshLocation != null) {
-                            mostrarDialogoReferencia(freshLocation.latitude, freshLocation.longitude)
-                        } else {
-                            Toast.makeText(requireContext(), "No se pudo obtener la ubicación para el registro", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                    return@addOnSuccessListener
-                }
-                mostrarDialogoReferencia(location.latitude, location.longitude)
-            }
+        val location = siniestroViewModel.location.value
+        if (location != null) {
+            mostrarDialogoReferencia(location.latitude, location.longitude)
+        } else {
+            Toast.makeText(requireContext(), "Buscando ubicación para el registro...", Toast.LENGTH_SHORT).show()
+            siniestroViewModel.fetchLocation()
+            // Podríamos observar un estado una vez para disparar el diálogo
+        }
     }
 
     private fun mostrarDialogoReferencia(latitud: Double, longitud: Double) {
-        val input = android.widget.EditText(requireContext())
+        val input = EditText(requireContext())
         input.hint = "Ingrese una referencia"
 
         AlertDialog.Builder(requireContext())
@@ -247,20 +235,28 @@ class FragmentA : Fragment() {
                     Toast.makeText(requireContext(), "Debe ingresar una referencia", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
-                guardarEnFirestore(latitud, longitud, referencia)
+                guardarSiniestro(latitud, longitud, referencia)
             }
             .setNegativeButton("Cancelar", null)
             .show()
     }
 
-    private fun guardarEnFirestore(latitud: Double, longitud: Double, referencia: String) {
-        dataBaseService.guardarSiniestro(latitud, longitud, referencia)
-            .addOnSuccessListener {
+    private fun guardarSiniestro(
+        latitud: Double,
+        longitud: Double,
+        referencia: String
+    ) {
+        siniestroViewModel.guardarSiniestro(
+            latitud = latitud,
+            longitud = longitud,
+            referencia = referencia,
+            onSuccess = {
                 Toast.makeText(requireContext(), "Ubicación registrada correctamente", Toast.LENGTH_SHORT).show()
+            },
+            onError = { error ->
+                Toast.makeText(requireContext(), "Error al guardar: ${error.message}", Toast.LENGTH_SHORT).show()
             }
-            .addOnFailureListener { error ->
-                Toast.makeText(requireContext(), "Error al guardar: ${error.message}", Toast.LENGTH_LONG).show()
-            }
+        )
     }
 
     private fun iniciarGrabacion() {
@@ -279,9 +275,6 @@ class FragmentA : Fragment() {
         }
     }
 
-    // =========================
-    // MAPVIEW LIFECYCLE
-    // =========================
     override fun onStart() {
         super.onStart()
         map.onStart()

@@ -52,5 +52,11 @@ class MainActivity : AppCompatActivity() {
             val navController = navHostFragment.navController
             navController.navigate(R.id.fragment_c)
         }
+
+        binding.btnFragmentD.setOnClickListener {
+            val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+            val navController = navHostFragment.navController
+            navController.navigate(R.id.fragmentD)
+        }
     }
 }

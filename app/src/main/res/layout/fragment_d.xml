@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".presentation.fragment.FragmentD"
+    android:id="@+id/fragmento_d">
+
+    <com.google.android.material.button.MaterialButton
+        android:layout_width="233dp"
+        android:layout_height="55dp"
+        android:id="@+id/btnLLamada1"
+        android:text="911 (Emergencias)"
+        android:textSize="11pt"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.297" />
+
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnLLamada2"
+        android:layout_width="233dp"
+        android:layout_height="55dp"
+        android:text="101 (Policía)"
+        android:textSize="11pt"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.421" />
+
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnLLamada3"
+        android:layout_width="233dp"
+        android:layout_height="55dp"
+        android:text="107 (Ambulancia)"
+        android:textSize="11pt"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.554" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnLLamada4"
+        android:layout_width="233dp"
+        android:layout_height="55dp"
+        android:text="100 (Bomberos)"
+        android:textSize="11pt"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.681" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

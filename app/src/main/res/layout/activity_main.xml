@@ -28,7 +28,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        android:padding="8dp"
+
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" >
@@ -36,34 +36,47 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFragmentB"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:backgroundTint="#ffffff"
             android:textColor="#000000"
             app:icon="@drawable/logo_camara"
             app:iconSize="25pt"
-            app:iconTint="#000000" />
+            app:iconTint="#000000"
+            app:iconGravity="textTop"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFragmentA"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:backgroundTint="#ffffff"
             android:textColor="#000000"
             app:icon="@drawable/logo_casa"
             app:iconSize="25pt"
-            app:iconTint="#000000" />
+            app:iconTint="#000000"
+            app:iconGravity="textTop"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFragmentC"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:backgroundTint="#ffffff"
             android:textColor="#000000"
             app:icon="@drawable/logo_mapa"
-            app:iconTint="#000000"
             app:iconSize="25pt"
-            />
+            app:iconTint="#000000"
+            app:iconGravity="textTop"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnFragmentD"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:backgroundTint="#ffffff"
+            android:textColor="#000000"
+            app:icon="@drawable/logo_mapa"
+            app:iconSize="25pt"
+            app:iconTint="#000000"
+            app:iconGravity="textTop"/>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
