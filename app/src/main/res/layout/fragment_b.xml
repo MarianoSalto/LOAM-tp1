@@ -27,7 +27,9 @@
         android:layout_width="110dp"
         android:layout_height="110dp"
         android:layout_marginBottom="50dp"
-        android:text="Tomar foto"
+        android:backgroundTint="#FF2c2c"
+        android:gravity="center"
+        android:text="Grabar video"
 
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.800"
@@ -39,10 +41,10 @@
         android:layout_width="110dp"
         android:layout_height="110dp"
         android:layout_marginBottom="50dp"
-
+        android:gravity="center"
+        android:backgroundTint="@android:color/transparent"
         app:icon="@drawable/cambiar_camara"
         app:iconSize="25pt"
-        app:iconGravity="start"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.200"
         app:layout_constraintLeft_toLeftOf="parent"

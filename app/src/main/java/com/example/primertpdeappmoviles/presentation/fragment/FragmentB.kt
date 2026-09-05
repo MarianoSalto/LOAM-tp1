@@ -13,6 +13,9 @@ import androidx.lifecycle.LifecycleOwner
 import com.example.primertpdeappmoviles.databinding.FragmentBBinding
 import com.example.primertpdeappmoviles.services.VideoService
 
+/**
+ * FragmentB: Encargado de la funcionalidad de grabación de video.
+ */
 class FragmentB : Fragment() {
 
     private var _binding: FragmentBBinding? = null
@@ -20,19 +23,14 @@ class FragmentB : Fragment() {
 
     private lateinit var videoServicio: VideoService
 
-    private val requestCameraPermission =//Acá se va a solicitar el permiso para acceder a la camara
-        registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { granted ->
-
-            if (granted) {
+    // Solicitar múltiples permisos (Cámara y Audio)
+    private val requestPermissions =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            val allGranted = permissions.all { it.value }
+            if (allGranted) {
                 videoServicio.startCamera()
             } else {
-                Toast.makeText(
-                    requireContext(),
-                    "Permiso de cámara denegado",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(requireContext(), "Permisos necesarios denegados", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -47,26 +45,30 @@ class FragmentB : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Inicializar VideoService con contexto, lifecycleOwner y el PreviewView del binding
         videoServicio = VideoService(requireContext(), viewLifecycleOwner, binding.viewFinder)
 
-        // Intentar iniciar la cámara al abrir el fragmento si ya tiene permisos
         if (videoServicio.allPermissionsGranted()) {
             videoServicio.startCamera()
+        } else {
+            requestPermissions.launch(VideoService.REQUIRED_PERMISSIONS)
         }
 
-        // Agregar observador al ciclo de vida del fragmento
         viewLifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onDestroy(owner: LifecycleOwner) {
                 videoServicio.shutdown()
             }
         })
 
+        // Cambiar lógica de clic para grabar
         binding.captureVideo.setOnClickListener {
             if (videoServicio.allPermissionsGranted()) {
-                videoServicio.takePhoto()
+                videoServicio.toggleRecording { isRecording ->
+                    // Actualizar UI según si está grabando o no
+                    binding.captureVideo.text = if (isRecording) "Detener" else "Grabar video"
+                    binding.modoSelfie.isEnabled = !isRecording
+                }
             } else {
-                requestCameraPermission.launch(Manifest.permission.CAMERA)
+                requestPermissions.launch(VideoService.REQUIRED_PERMISSIONS)
             }
         }
 
@@ -74,32 +76,7 @@ class FragmentB : Fragment() {
             if (videoServicio.allPermissionsGranted()) {
                 toggleCamera()
             } else {
-                requestCameraPermission.launch(Manifest.permission.CAMERA)
-            }
-        }
-
-
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
-    // Va a verificar si se acpto o no el permiso
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        Toast.makeText(requireContext(), "anda", Toast.LENGTH_SHORT).show()
-
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == VideoService.REQUEST_CODE_PERMISSIONS) {
-            if (videoServicio.allPermissionsGranted()) {
-                videoServicio.startCamera()
-            } else {
-                Toast.makeText(requireContext(), "Permiso de cámara denegado", Toast.LENGTH_SHORT).show()
+                requestPermissions.launch(VideoService.REQUIRED_PERMISSIONS)
             }
         }
     }
@@ -109,5 +86,8 @@ class FragmentB : Fragment() {
         videoServicio.startCamera()
     }
 
-
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }

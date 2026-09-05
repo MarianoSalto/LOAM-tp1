@@ -28,6 +28,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
+        android:backgroundTint="#ffffff"
 
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -73,10 +74,11 @@
             android:layout_height="80dp"
             android:backgroundTint="#ffffff"
             android:textColor="#000000"
-            app:icon="@drawable/logo_mapa"
+            app:icon="@drawable/icono_llamada"
             app:iconSize="25pt"
             app:iconTint="#000000"
-            app:iconGravity="textTop"/>
+            app:iconGravity="textTop"
+            />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

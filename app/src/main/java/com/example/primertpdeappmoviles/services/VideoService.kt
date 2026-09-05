@@ -1,91 +1,85 @@
 package com.example.primertpdeappmoviles.services
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
-//import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
-//import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import androidx.camera.video.*
+import androidx.camera.video.VideoCapture
 import androidx.camera.view.PreviewView
+import androidx.core.content.ContextCompat
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 /**
- * Servicio para manejar la funcionalidad de la cámara usando CameraX.
- * Recibe el contexto, el LifecycleOwner y el PreviewView para interactuar con la UI y el ciclo de vida.
+ * VideoService: Gestiona la cámara del dispositivo utilizando la biblioteca CameraX.
+ * Se encarga de la vista previa y la grabación de video.
  */
 class VideoService(
     private val context: android.content.Context,
     private val lifecycleOwner: androidx.lifecycle.LifecycleOwner,
     private val previewView: PreviewView
 ) {
-    private var imageCapture: ImageCapture? = null
+    // Caso de uso para grabar video
+    private var videoCapture: VideoCapture<Recorder>? = null
+    private var recording: Recording? = null
+    
+    // Ejecutor para tareas de cámara en segundo plano
     private var cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+    // Selector de cámara (trasera por defecto)
     private var cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
     companion object {
         private const val TAG = "VideoService"
         const val REQUEST_CODE_PERMISSIONS = 10
-        val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
+        val REQUIRED_PERMISSIONS = arrayOf(
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO
+        )
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
     }
 
     /**
-     * Verifica si todos los permisos necesarios han sido otorgados.
+     * Comprueba si se han concedido los permisos necesarios.
      */
     fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
     }
 
     /**
-     * Solicita los permisos necesarios para la cámara.
-     */
-    /*fun solicitarPermisos(activity: android.app.Activity) {
-        ActivityCompat.requestPermissions(
-            activity, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
-        )
-    }*/
-
-    /**
-     * Configura e inicia la vista previa de la cámara.
+     * Configura e inicia la cámara vinculada al ciclo de vida.
      */
     fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
         cameraProviderFuture.addListener({
-            // Se usa para vincular el ciclo de vida de las cámaras al ciclo de vida del LifecycleOwner
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
-            // Configurar el Use Case de Preview (Vista previa)
+            // Vista previa
             val preview = Preview.Builder()
                 .build()
                 .also {
                     it.setSurfaceProvider(previewView.surfaceProvider)
                 }
 
-            // Configurar el Use Case de ImageCapture (Tomar foto)
-            imageCapture = ImageCapture.Builder()
-                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            // Configurar Recorder para VideoCapture
+            val recorder = Recorder.Builder()
+                .setQualitySelector(QualitySelector.from(Quality.HIGHEST))
                 .build()
-
-            // Seleccionar la cámara actual (trasera o delantera)
-            val cameraSelector = this.cameraSelector
+            videoCapture = VideoCapture.withOutput(recorder)
 
             try {
-                // Desvincular cualquier uso previo antes de volver a vincular
                 cameraProvider.unbindAll()
-
-                // Vincular los casos de uso a la cámara
                 cameraProvider.bindToLifecycle(
-                    lifecycleOwner, cameraSelector, preview, imageCapture
+                    lifecycleOwner, cameraSelector, preview, videoCapture
                 )
             } catch (exc: Exception) {
                 Log.e(TAG, "Error al vincular la cámara", exc)
@@ -95,78 +89,79 @@ class VideoService(
     }
 
     /**
-     * Captura una imagen y la guarda en la galería.
+     * Inicia o detiene la grabación de video.
+     * @param onRecordingStatus callback para informar si está grabando o no.
      */
-    fun takePhoto() {
-        val imageCapture = imageCapture ?: run {
-            Log.e(TAG, "La cámara aún no está lista")
-            Toast.makeText(context, "Cámara no lista, intente de nuevo", Toast.LENGTH_SHORT).show()
+    @SuppressLint("MissingPermission")
+    fun toggleRecording(onRecordingStatus: (Boolean) -> Unit) {
+        val videoCapture = this.videoCapture ?: return
+
+        val curRecording = recording
+        if (curRecording != null) {
+            // Detener la grabación actual
+            curRecording.stop()
+            recording = null
+            onRecordingStatus(false)
             return
         }
 
-        // Crear nombre del archivo basado en el tiempo actual
+        // Preparar nombre y ubicación del archivo
         val name = SimpleDateFormat(FILENAME_FORMAT, Locale.US)
             .format(System.currentTimeMillis())
-
-        // Configurar metadatos para guardar en MediaStore
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, name)
-            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+            put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
-                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/CameraX-Image")
+                put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/CameraX-Video")
             }
         }
 
-        // Crear opciones de salida que contienen el archivo + metadatos
-        val outputOptions = ImageCapture.OutputFileOptions
-            .Builder(
-                context.contentResolver,
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                contentValues
-            )
+        val mediaStoreOutputOptions = MediaStoreOutputOptions
+            .Builder(context.contentResolver, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
+            .setContentValues(contentValues)
             .build()
 
-        // Configurar el listener de captura de imagen
-        imageCapture.takePicture(
-            outputOptions,
-            ContextCompat.getMainExecutor(context),
-            object : ImageCapture.OnImageSavedCallback {
-                override fun onError(exc: ImageCaptureException) {
-                    Log.e(TAG, "Error al capturar foto: ${exc.message}", exc)
-                }
-
-                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    val msg = "Foto guardada: ${output.savedUri}"
-                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                    Log.d(TAG, msg)
+        // Iniciar nueva grabación
+        recording = videoCapture.output
+            .prepareRecording(context, mediaStoreOutputOptions)
+            .withAudioEnabled()
+            .start(ContextCompat.getMainExecutor(context)) { recordEvent ->
+                when(recordEvent) {
+                    is VideoRecordEvent.Start -> {
+                        onRecordingStatus(true)
+                    }
+                    is VideoRecordEvent.Finalize -> {
+                        if (!recordEvent.hasError()) {
+                            val msg = "Video guardado: ${recordEvent.outputResults.outputUri}"
+                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                        } else {
+                            recording?.stop()
+                            recording = null
+                            Log.e(TAG, "Error en grabación: ${recordEvent.error}")
+                        }
+                        onRecordingStatus(false)
+                    }
                 }
             }
-        )
     }
+
+    fun isRecording(): Boolean = recording != null
 
     /**
-     * Limpia los recursos cuando el servicio ya no es necesario.
-     */
-    fun shutdown() {
-        cameraExecutor.shutdown()
-    }
-
-    fun getCameraSelector(): CameraSelector {
-        return cameraSelector
-    }
-
-    fun setCameraSelector(selector: CameraSelector) {
-        cameraSelector = selector
-    }
-
-    /**
-     * Alterna entre la cámara frontal y trasera.
+     * Alterna entre cámara frontal y trasera.
      */
     fun toggleCamera() {
+        if (isRecording()) return // No cambiar mientras graba
         cameraSelector = if (cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
             CameraSelector.DEFAULT_FRONT_CAMERA
         } else {
             CameraSelector.DEFAULT_BACK_CAMERA
         }
+    }
+
+    fun shutdown() {
+        recording?.stop()
+        recording = null
+        cameraExecutor.shutdown()
     }
 }

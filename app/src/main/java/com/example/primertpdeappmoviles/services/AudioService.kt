@@ -15,19 +15,23 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
- * Servicio para manejar la grabación de audio.
+ * AudioService: Encapsula la lógica para la grabación de audio en el dispositivo.
  */
 class AudioService(private val context: Context) {
+    
+    // El grabador multimedia de Android
     private var mediaRecorder: MediaRecorder? = null
+    // Ruta del archivo donde se guardará el audio
     private var outputFile: String = ""
 
     companion object {
         const val REQUEST_CODE_AUDIO = 200
+        // Permiso requerido para grabar audio
         val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.RECORD_AUDIO)
     }
 
     /**
-     * Verifica si se tiene el permiso de grabación de audio.
+     * Verifica si la aplicación tiene el permiso necesario para usar el micrófono.
      */
     fun hasAudioPermission(): Boolean {
         return ContextCompat.checkSelfPermission(
@@ -37,7 +41,7 @@ class AudioService(private val context: Context) {
     }
 
     /**
-     * Solicita el permiso de grabación de audio.
+     * Solicita permisos de audio desde una Activity.
      */
     fun requestAudioPermissions(activity: android.app.Activity) {
         androidx.core.app.ActivityCompat.requestPermissions(
@@ -47,6 +51,9 @@ class AudioService(private val context: Context) {
         )
     }
 
+    /**
+     * Solicita permisos de audio desde un Fragment.
+     */
     fun requestAudioPermissions(fragment: androidx.fragment.app.Fragment) {
         fragment.requestPermissions(
             REQUIRED_PERMISSIONS,
@@ -55,14 +62,16 @@ class AudioService(private val context: Context) {
     }
 
     /**
-     * Inicia la grabación de audio.
+     * Configura el grabador e inicia la captura de sonido.
      */
     fun startRecording() {
+        // Definir la ruta de salida en la carpeta de Música del almacenamiento externo
         val musicDir = context.getExternalFilesDir(Environment.DIRECTORY_MUSIC)
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val audioFile = File(musicDir, "AUDIO_$timeStamp.3gp")
         outputFile = audioFile.absolutePath
         
+        // Instanciar MediaRecorder según la versión de Android
         mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             MediaRecorder(context)
         } else {
@@ -71,10 +80,10 @@ class AudioService(private val context: Context) {
         }
         
         mediaRecorder?.apply {
-            setAudioSource(MediaRecorder.AudioSource.MIC)
-            setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-            setOutputFile(outputFile)
-            setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+            setAudioSource(MediaRecorder.AudioSource.MIC)        // Usar micrófono
+            setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP) // Formato 3GP
+            setOutputFile(outputFile)                            // Ruta de destino
+            setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)   // Codificador de audio
             try {
                 prepare()
                 start()
@@ -86,7 +95,7 @@ class AudioService(private val context: Context) {
     }
 
     /**
-     * Detiene la grabación de audio.
+     * Detiene la grabación y libera los recursos del MediaRecorder.
      */
     fun stopRecording() {
         mediaRecorder?.apply {
