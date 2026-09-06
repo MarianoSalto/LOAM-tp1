@@ -10,9 +10,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
-import com.example.primertpdeappmoviles.R
 import com.example.primertpdeappmoviles.data.repository.LocationRepositoryImpl
 import com.example.primertpdeappmoviles.data.repository.SiniestroRepositoryImpl
 import com.example.primertpdeappmoviles.databinding.FragmentCBinding
