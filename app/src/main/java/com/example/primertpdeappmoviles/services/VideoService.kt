@@ -28,6 +28,8 @@ class VideoService(
     private val lifecycleOwner: androidx.lifecycle.LifecycleOwner,
     private val previewView: PreviewView
 ) {
+    // Caso de uso para capturar fotos
+    private var imageCapture: ImageCapture? = null
     // Caso de uso para grabar video
     private var videoCapture: VideoCapture<Recorder>? = null
     private var recording: Recording? = null
@@ -70,6 +72,10 @@ class VideoService(
                     it.setSurfaceProvider(previewView.surfaceProvider)
                 }
 
+            // Configurar ImageCapture
+            imageCapture = ImageCapture.Builder()
+                .build()
+
             // Configurar Recorder para VideoCapture
             val recorder = Recorder.Builder()
                 .setQualitySelector(QualitySelector.from(Quality.HIGHEST))
@@ -79,13 +85,56 @@ class VideoService(
             try {
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
-                    lifecycleOwner, cameraSelector, preview, videoCapture
+                    lifecycleOwner, cameraSelector, preview, imageCapture, videoCapture
                 )
             } catch (exc: Exception) {
                 Log.e(TAG, "Error al vincular la cámara", exc)
             }
 
         }, ContextCompat.getMainExecutor(context))
+    }
+
+    /**
+     * Captura una foto y la guarda en el almacenamiento externo.
+     */
+    fun takePhoto() {
+        // Obtener una referencia estable del caso de uso de captura de imágenes
+        val imageCapture = imageCapture ?: return
+
+        // Crear nombre del archivo con marca de tiempo
+        val name = SimpleDateFormat(FILENAME_FORMAT, Locale.US)
+            .format(System.currentTimeMillis())
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/CameraX-Image")
+            }
+        }
+
+        // Crear opciones de salida para MediaStore
+        val outputOptions = ImageCapture.OutputFileOptions
+            .Builder(context.contentResolver,
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                contentValues)
+            .build()
+
+        // Configurar el listener de captura de imagen
+        imageCapture.takePicture(
+            outputOptions,
+            ContextCompat.getMainExecutor(context),
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onError(exc: ImageCaptureException) {
+                    Log.e(TAG, "Error al capturar foto: ${exc.message}", exc)
+                }
+
+                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                    val msg = "Foto capturada: ${output.savedUri}"
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                    Log.d(TAG, msg)
+                }
+            }
+        )
     }
 
     /**
