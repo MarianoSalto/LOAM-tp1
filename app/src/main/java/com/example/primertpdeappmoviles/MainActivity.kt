@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -29,7 +30,9 @@ class MainActivity : AppCompatActivity() {
 
     // View Binding para acceder a los elementos de layout de la actividad
     private lateinit var binding: ActivityMainBinding
-    private lateinit var viewModel: WeatherViewModel// implemento las alertas en el main, dado que no importa en que fragmento  este, debe reaccionar en cualquier lado
+    private lateinit var viewModel: WeatherViewModel
+    private var vibrator: Vibrator? = null
+    private var isVibrating = false // Bandera para que la alerta no se interrumpa sola
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Inicializar MapLibre para el uso de mapas en la aplicación
@@ -63,14 +66,23 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Observar la alerta capturada desde el dominio
-        viewModel.alertaActiva.observe(this) { alerta ->// Acá debo implemtar la funcionalidad de que el haga ruido
-            val vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator?// esto hace vibrar al telefono.. se debe agregar unos permisos al AndroidManifest
-            if (vibrator != null && vibrator.hasVibrator()) {
-                // Vibra continuamente: espera 0ms, vibra 500ms, descansa 500ms...
-                val pattern = longArrayOf(0, 500, 500)
-                vibrator.vibrate(VibrationEffect.createWaveform(pattern, 0)) // '0' repite el bucle
+        viewModel.alertaActiva.observe(this) { alerta ->
+            // Solo iniciamos si NO está vibrando ya
+            if (!isVibrating) {
+                vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator?
+                if (vibrator != null && vibrator!!.hasVibrator()) {
+                    val pattern = longArrayOf(0, 500, 500)
+                    vibrator!!.vibrate(VibrationEffect.createWaveform(pattern, 0))
+                    binding.btnDetenerAlerta.visibility = View.VISIBLE
+                    isVibrating = true
+                }
             }
-            
+        }
+
+        binding.btnDetenerAlerta.setOnClickListener {
+            vibrator?.cancel()
+            binding.btnDetenerAlerta.visibility = View.GONE
+            isVibrating = false
         }
 
         // =========================

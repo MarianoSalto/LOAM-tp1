@@ -81,4 +81,17 @@
             />
     </LinearLayout>
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnDetenerAlerta"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Detener Alerta"
+        android:backgroundTint="#FF0000"
+        android:textColor="#FFFFFF"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

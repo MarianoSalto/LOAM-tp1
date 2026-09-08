@@ -121,12 +121,7 @@ class FragmentA : Fragment() {
     private fun setupObservers() {
         batteryViewModel.batteryInfo.observe(viewLifecycleOwner) { info ->
 
-            Log.d("BATTERY_DEBUG", "percentage: ${info.percentage}")
-            Log.d("BATTERY_DEBUG", "isCharging: ${info.isCharging}")
-            Log.d("BATTERY_DEBUG", "estimatedMinutesRemaining: ${info.estimatedMinutesRemaining}")
-
-            val chargingStatus = if (info.isCharging) "Cargando" else "Descargando"
-            var message = "Batería: ${info.percentage}%\nEstado: $chargingStatus"
+            var message = "Batería: ${info.percentage}%"
             
             // Si tenemos estimación de tiempo, la añadimos al mensaje
             info.estimatedMinutesRemaining?.let { minutes ->
