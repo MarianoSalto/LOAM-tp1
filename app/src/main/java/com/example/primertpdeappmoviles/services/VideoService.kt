@@ -33,7 +33,7 @@ class VideoService(
     // Caso de uso para grabar video
     private var videoCapture: VideoCapture<Recorder>? = null
     private var recording: Recording? = null
-    
+
     // Ejecutor para tareas de cámara en segundo plano
     private var cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     // Selector de cámara (trasera por defecto)

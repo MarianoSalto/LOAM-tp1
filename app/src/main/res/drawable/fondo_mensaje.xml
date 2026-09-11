@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+    <!--
+        Fondo simple para cada mensaje.
+    -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Color del fondo del mensaje. -->
+    <solid android:color="#EEEEEE" />
+
+    <!-- Bordes redondeados. -->
+    <corners android:radius="12dp" />
+
+</shape>
