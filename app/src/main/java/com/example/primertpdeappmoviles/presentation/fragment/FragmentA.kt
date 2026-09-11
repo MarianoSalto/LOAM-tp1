@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import com.example.primertpdeappmoviles.R
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -14,6 +16,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.primertpdeappmoviles.databinding.FragmentABinding
 import com.example.primertpdeappmoviles.presentation.ChatAdapter
 import com.example.primertpdeappmoviles.presentation.ChatViewModel
+import com.example.primertpdeappmoviles.data.datasouce.BatteryDataSource
+import com.example.primertpdeappmoviles.data.repository.BatteryRepositoryImpl
+import com.example.primertpdeappmoviles.domain.usecase.EstimateBatteryUseCase
+import com.example.primertpdeappmoviles.domain.usecase.GetBatteryInfoUseCase
+import com.example.primertpdeappmoviles.presentation.viewmodel.BatteryViewModel
+import com.example.primertpdeappmoviles.presentation.viewmodel.BatteryViewModelFactory
 import com.example.primertpdeappmoviles.services.AudioService
 import com.example.primertpdeappmoviles.services.FlashlightService
 import kotlinx.coroutines.launch
@@ -52,6 +60,16 @@ class FragmentA : Fragment() {
 
     // Adapter encargado de mostrar los mensajes.
     private lateinit var chatAdapter: ChatAdapter
+
+    // ViewModel para la batería (Clean Architecture)
+    private val batteryViewModel: BatteryViewModel by viewModels {
+        val dataSource = BatteryDataSource(requireContext())
+        val repository = BatteryRepositoryImpl(dataSource)
+        val getBatteryUseCase = GetBatteryInfoUseCase(repository)
+        val estimateUseCase = EstimateBatteryUseCase()
+        
+        BatteryViewModelFactory(getBatteryUseCase, estimateUseCase)
+    }
 
 
     // =================================================
@@ -129,6 +147,9 @@ class FragmentA : Fragment() {
         // Comenzamos a observar los mensajes.
         observarMensajes()
 
+        // Observamos la información de la batería
+        observarBateria()
+
 
         // =================================================
         // CICLO DE VIDA
@@ -172,15 +193,19 @@ class FragmentA : Fragment() {
             if (binding.layoutChat.visibility == View.GONE) {
                 // Mostramos el chat.
                 binding.layoutChat.visibility = View.VISIBLE
-                // Ocultamos las herramientas.
+                // Ocultamos las herramientas y la guía.
                 binding.layoutHerramientas.visibility = View.GONE
+                binding.tvSubtituloGuia.visibility = View.GONE
+                binding.ivGuiaAyuda.visibility = View.GONE
                 // Cambiamos el texto del botón
                 binding.btnAsistente.text = "Cerrar Chat"
             } else {
                 // Ocultamos el chat.
                 binding.layoutChat.visibility = View.GONE
-                // Mostramos las herramientas.
+                // Mostramos las herramientas y la guía.
                 binding.layoutHerramientas.visibility = View.VISIBLE
+                binding.tvSubtituloGuia.visibility = View.VISIBLE
+                binding.ivGuiaAyuda.visibility = View.VISIBLE
                 // Restauramos el texto del botón
                 binding.btnAsistente.text = "Asistente"
             }
@@ -235,6 +260,23 @@ class FragmentA : Fragment() {
 
             // Deshabilitamos parar.
             binding.btnFinishAudio.isEnabled = false
+        }
+
+        // =================================================
+        // BOTÓN BATERÍA
+        // =================================================
+
+        binding.btnBateria.setOnClickListener {
+            // Solicita la actualización de info de batería al ViewModel
+            batteryViewModel.refreshBatteryInfo()
+        }
+
+        // =================================================
+        // CLIC EN IMAGEN GUÍA (AGRANDAR)
+        // =================================================
+
+        binding.ivGuiaAyuda.setOnClickListener {
+            mostrarImagenAgrandada()
         }
     }
 
@@ -356,6 +398,30 @@ class FragmentA : Fragment() {
     // =================================================
     // CÁMARA / LINTERNA
     // =================================================
+    // OBSERVAR BATERÍA
+    // =================================================
+
+    private fun observarBateria() {
+        batteryViewModel.batteryInfo.observe(viewLifecycleOwner) { info ->
+            var message = "Batería: ${info.percentage}%"
+
+            // Si tenemos estimación de tiempo, la añadimos al mensaje
+            info.estimatedMinutesRemaining?.let { minutes ->
+                val endTime = batteryViewModel.getEstimatedEndTimeString(minutes)
+                message += "\nQuedan aprox: $minutes min"
+                message += "\nSe agotará a las: $endTime"
+            } ?: run {
+                if (!info.isCharging) {
+                    message += "\nCalculando estimación..."
+                }
+            }
+
+            Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+        }
+    }
+
+
+    // =================================================
 
     private fun initCamera() {
 
@@ -417,6 +483,26 @@ class FragmentA : Fragment() {
 
         // Habilitamos parar.
         binding.btnFinishAudio.isEnabled = true
+    }
+
+
+    // =================================================
+    // AGRANDAR IMAGEN GUÍA
+    // =================================================
+
+    private fun mostrarImagenAgrandada() {
+        val builder = AlertDialog.Builder(requireContext(), android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+        val vistaDialogo = layoutInflater.inflate(R.layout.dialog_image_preview, null)
+        builder.setView(vistaDialogo)
+
+        val dialog = builder.create()
+
+        // Botón cerrar dentro del diálogo
+        vistaDialogo.findViewById<View>(R.id.btnClose).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
 

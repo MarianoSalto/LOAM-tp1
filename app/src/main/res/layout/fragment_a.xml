@@ -76,16 +76,44 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Botón Asistente fuera para que no desaparezca al ocultar herramientas -->
+    <!-- Subtítulo de la guía -->
+    <TextView
+        android:id="@+id/tvSubtituloGuia"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Guía de Ayuda"
+        android:textSize="18sp"
+        android:textStyle="italic"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutHerramientas" />
+
+    <!-- Imagen de la guía -->
+    <ImageView
+        android:id="@+id/ivGuiaAyuda"
+        android:layout_width="0dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/guia_ayuda"
+        android:contentDescription="Imagen de la guía de ayuda"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvSubtituloGuia" />
+
+    <!-- Botón Asistente -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnAsistente"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:text="Asistente"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/layoutHerramientas" />
+        app:layout_constraintTop_toBottomOf="@+id/ivGuiaAyuda" />
 
     <!-- Sección del Chat -->
     <androidx.constraintlayout.widget.ConstraintLayout
