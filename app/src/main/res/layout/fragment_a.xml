@@ -93,16 +93,55 @@
     <ImageView
         android:id="@+id/ivGuiaAyuda"
         android:layout_width="0dp"
-        android:layout_height="200dp"
+        android:layout_height="120dp"
         android:layout_marginTop="8dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
         android:scaleType="centerInside"
         android:src="@drawable/guia_ayuda"
         android:contentDescription="Imagen de la guía de ayuda"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSubtituloGuia" />
+
+    <!-- Subtítulo del video -->
+    <TextView
+        android:id="@+id/tvSubtituloVideo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Video Tutorial"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ivGuiaAyuda" />
+
+    <!-- Contenedor para el video con detector de clics -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutVideoContainer"
+        android:layout_width="0dp"
+        android:layout_height="120dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvSubtituloVideo">
+
+        <VideoView
+            android:id="@+id/videoAyuda"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- Overlay transparente para detectar el clic en todo el video -->
+        <View
+            android:id="@+id/videoClickOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Botón Asistente -->
     <com.google.android.material.button.MaterialButton
@@ -113,7 +152,7 @@
         android:text="Asistente"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ivGuiaAyuda" />
+        app:layout_constraintTop_toBottomOf="@+id/layoutVideoContainer" />
 
     <!-- Sección del Chat -->
     <androidx.constraintlayout.widget.ConstraintLayout

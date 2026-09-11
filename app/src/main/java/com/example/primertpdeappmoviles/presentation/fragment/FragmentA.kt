@@ -1,10 +1,13 @@
 package com.example.primertpdeappmoviles.presentation.fragment
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.MediaController
 import android.widget.Toast
+import android.widget.VideoView
 import com.example.primertpdeappmoviles.R
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -187,25 +190,32 @@ class FragmentA : Fragment() {
             )
         }
 
+        // Mostramos la guía inicial
+        setupVideo()
+
         //================Chat=================================
         // Configuramos el botón que muestra el chat.
         binding.btnAsistente.setOnClickListener {
             if (binding.layoutChat.visibility == View.GONE) {
                 // Mostramos el chat.
                 binding.layoutChat.visibility = View.VISIBLE
-                // Ocultamos las herramientas y la guía.
+                // Ocultamos las herramientas, la guía y el video.
                 binding.layoutHerramientas.visibility = View.GONE
                 binding.tvSubtituloGuia.visibility = View.GONE
                 binding.ivGuiaAyuda.visibility = View.GONE
+                binding.tvSubtituloVideo.visibility = View.GONE
+                binding.layoutVideoContainer.visibility = View.GONE
                 // Cambiamos el texto del botón
                 binding.btnAsistente.text = "Cerrar Chat"
             } else {
                 // Ocultamos el chat.
                 binding.layoutChat.visibility = View.GONE
-                // Mostramos las herramientas y la guía.
+                // Mostramos las herramientas, la guía y el video.
                 binding.layoutHerramientas.visibility = View.VISIBLE
                 binding.tvSubtituloGuia.visibility = View.VISIBLE
                 binding.ivGuiaAyuda.visibility = View.VISIBLE
+                binding.tvSubtituloVideo.visibility = View.VISIBLE
+                binding.layoutVideoContainer.visibility = View.VISIBLE
                 // Restauramos el texto del botón
                 binding.btnAsistente.text = "Asistente"
             }
@@ -277,6 +287,11 @@ class FragmentA : Fragment() {
 
         binding.ivGuiaAyuda.setOnClickListener {
             mostrarImagenAgrandada()
+        }
+
+        // Lógica para agrandar el video al hacer clic
+        binding.videoClickOverlay.setOnClickListener {
+            mostrarVideoAgrandado()
         }
     }
 
@@ -398,6 +413,27 @@ class FragmentA : Fragment() {
     // =================================================
     // CÁMARA / LINTERNA
     // =================================================
+    // CONFIGURAR VIDEO
+    // =================================================
+
+    private fun setupVideo() {
+        val videoPath = "android.resource://" + requireContext().packageName + "/" + R.raw.guia_emergencia_animada
+        val uri = Uri.parse(videoPath)
+        binding.videoAyuda.setVideoURI(uri)
+
+        // Controles de reproducción
+        val mediaController = MediaController(requireContext())
+        mediaController.setAnchorView(binding.videoAyuda)
+        binding.videoAyuda.setMediaController(mediaController)
+
+        // Opcional: Iniciar automáticamente o al hacer clic
+        binding.videoAyuda.setOnPreparedListener { mp ->
+            mp.isLooping = true // El video se repetirá
+        }
+    }
+
+
+    // =================================================
     // OBSERVAR BATERÍA
     // =================================================
 
@@ -499,6 +535,38 @@ class FragmentA : Fragment() {
 
         // Botón cerrar dentro del diálogo
         vistaDialogo.findViewById<View>(R.id.btnClose).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    // =================================================
+    // AGRANDAR VIDEO GUÍA
+    // =================================================
+
+    private fun mostrarVideoAgrandado() {
+        val builder = AlertDialog.Builder(requireContext(), android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+        val vistaDialogo = layoutInflater.inflate(R.layout.dialog_video_preview, null)
+        builder.setView(vistaDialogo)
+
+        val dialog = builder.create()
+
+        val videoView = vistaDialogo.findViewById<VideoView>(R.id.vvFullVideo)
+        val videoPath = "android.resource://" + requireContext().packageName + "/" + R.raw.guia_emergencia_animada
+        videoView.setVideoURI(Uri.parse(videoPath))
+
+        val mediaController = MediaController(requireContext())
+        mediaController.setAnchorView(videoView)
+        videoView.setMediaController(mediaController)
+
+        videoView.setOnPreparedListener { mp ->
+            mp.isLooping = true
+            videoView.start()
+        }
+
+        vistaDialogo.findViewById<View>(R.id.btnCloseVideo).setOnClickListener {
+            videoView.stopPlayback()
             dialog.dismiss()
         }
 
