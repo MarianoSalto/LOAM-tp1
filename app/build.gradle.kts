@@ -78,6 +78,8 @@ dependencies {
         )
     )
 
+    implementation("com.google.firebase:firebase-messaging")
+
     // Firebase Analytics.
     implementation(
         "com.google.firebase:firebase-analytics"
