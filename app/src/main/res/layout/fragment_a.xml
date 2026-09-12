@@ -6,182 +6,259 @@
     android:layout_height="match_parent"
     tools:context=".presentation.fragment.FragmentA">
 
-    <!-- Sección de Herramientas -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layoutHerramientas"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+    <!-- ScrollView para toda la sección superior (Herramientas, Guía, Video) -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollViewContenido"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@+id/btnAsistente"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/Titulo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Alertas Tempranas"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnLinterna"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Linterna"
-            app:icon="@drawable/linterna_apagada"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/Titulo" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_StartAudio"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="4dp"
-            android:layout_marginStart="16dp"
-            android:text="Iniciar"
-            app:layout_constraintEnd_toStartOf="@+id/btn_finishAudio"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/btnLinterna" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_finishAudio"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginEnd="16dp"
-            android:text="Parar"
-            app:layout_constraintBottom_toBottomOf="@+id/btn_StartAudio"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/btn_StartAudio"
-            app:layout_constraintTop_toTopOf="@+id/btn_StartAudio" />
-
-        <!-- Botón de Comando de Voz posicionado junto al botón de batería -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_bateria"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="48dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="16dp"
-            android:text="Batería"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/btn_StartAudio"
-            app:layout_constraintVertical_bias="0.0" />
-
-        <ImageButton
-            android:id="@+id/btnVoz"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="164dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Dictar por voz"
-            android:src="@android:drawable/ic_btn_speak_now"
-            app:layout_constraintBottom_toBottomOf="@id/btn_bateria"
-            app:layout_constraintStart_toEndOf="@id/btn_bateria"
-            app:layout_constraintTop_toTopOf="@id/btn_bateria"
-            app:layout_constraintVertical_bias="1.0"
-            app:tint="@color/design_default_color_primary" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- Subtítulo de la guía -->
-    <TextView
-        android:id="@+id/tvSubtituloGuia"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Guía de Ayuda"
-        android:textSize="18sp"
-        android:textStyle="italic"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layoutHerramientas" />
-
-    <!-- Imagen de la guía -->
-    <ImageView
-        android:id="@+id/ivGuiaAyuda"
-        android:layout_width="0dp"
-        android:layout_height="120dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:scaleType="centerInside"
-        android:src="@drawable/guia_ayuda"
-        android:contentDescription="Imagen de la guía de ayuda"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvSubtituloGuia" />
-
-    <!-- Subtítulo del video -->
-    <TextView
-        android:id="@+id/tvSubtituloVideo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Video Tutorial"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/ivGuiaAyuda" />
-
-    <!-- Contenedor para el video con detector de clics -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layoutVideoContainer"
-        android:layout_width="0dp"
-        android:layout_height="120dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvSubtituloVideo">
-
-        <VideoView
-            android:id="@+id/videoAyuda"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="wrap_content">
 
-        <!-- Overlay transparente para detectar el clic en todo el video -->
-        <View
-            android:id="@+id/videoClickOverlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@android:color/transparent" />
+            <!-- Sección de Herramientas -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layoutHerramientas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="parent">
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+                <TextView
+                    android:id="@+id/Titulo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Alertas Tempranas"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Botón Asistente -->
+                <!-- Widget de Clima -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardClima"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="16dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="4dp"
+                    app:layout_constraintTop_toBottomOf="@id/Titulo">
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:id="@+id/tvIconoClima"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="--"
+                            android:textSize="36sp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <TextView
+                            android:id="@+id/tvTemperatura"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:text="--°C"
+                            android:textSize="32sp"
+                            android:textStyle="bold"
+                            app:layout_constraintBottom_toBottomOf="@id/tvIconoClima"
+                            app:layout_constraintStart_toEndOf="@id/tvIconoClima"
+                            app:layout_constraintTop_toTopOf="@id/tvIconoClima" />
+
+                        <TextView
+                            android:id="@+id/tvCondicion"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Cargando..."
+                            android:textColor="@android:color/darker_gray"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/tvIconoClima" />
+
+                        <TextView
+                            android:id="@+id/tvHumedadViento"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="Humedad: -- | Viento: --"
+                            android:textSize="12sp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/tvCondicion" />
+
+                        <ProgressBar
+                            android:id="@+id/pbClima"
+                            style="?android:attr/progressBarStyleSmall"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:visibility="gone"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLinterna"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Linterna"
+                    app:icon="@drawable/linterna_apagada"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/cardClima" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_StartAudio"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_marginStart="16dp"
+                    android:text="Iniciar"
+                    app:layout_constraintEnd_toStartOf="@+id/btn_finishAudio"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/btnLinterna" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_finishAudio"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="16dp"
+                    android:text="Parar"
+                    app:layout_constraintBottom_toBottomOf="@+id/btn_StartAudio"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/btn_StartAudio"
+                    app:layout_constraintTop_toTopOf="@+id/btn_StartAudio" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_bateria"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="48dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="16dp"
+                    android:text="Batería"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/btn_StartAudio" />
+
+                <ImageButton
+                    android:id="@+id/btnVoz"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="16dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Dictar por voz"
+                    android:src="@android:drawable/ic_btn_speak_now"
+                    app:layout_constraintBottom_toBottomOf="@id/btn_bateria"
+                    app:layout_constraintStart_toEndOf="@id/btn_bateria"
+                    app:layout_constraintTop_toTopOf="@id/btn_bateria"
+                    app:tint="@color/design_default_color_primary" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Subtítulo de la guía -->
+            <TextView
+                android:id="@+id/tvSubtituloGuia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Guía de Ayuda"
+                android:textSize="18sp"
+                android:textStyle="italic"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/layoutHerramientas" />
+
+            <!-- Imagen de la guía -->
+            <ImageView
+                android:id="@+id/ivGuiaAyuda"
+                android:layout_width="0dp"
+                android:layout_height="120dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="32dp"
+                android:layout_marginEnd="32dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/guia_ayuda"
+                android:contentDescription="Imagen de la guía de ayuda"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvSubtituloGuia" />
+
+            <!-- Subtítulo del video -->
+            <TextView
+                android:id="@+id/tvSubtituloVideo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Video Tutorial"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/ivGuiaAyuda" />
+
+            <!-- Contenedor para el video -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layoutVideoContainer"
+                android:layout_width="0dp"
+                android:layout_height="120dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="32dp"
+                android:layout_marginEnd="32dp"
+                android:layout_marginBottom="16dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvSubtituloVideo">
+
+                <VideoView
+                    android:id="@+id/videoAyuda"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <View
+                    android:id="@+id/videoClickOverlay"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/transparent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Botón Asistente (Fijo sobre el chat) -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnAsistente"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
         android:text="Asistente"
+        app:layout_constraintBottom_toTopOf="@+id/layoutChat"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/layoutVideoContainer" />
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Sección del Chat -->
+    <!-- Sección del Chat (Panel inferior) -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layoutChat"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
         android:padding="8dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnAsistente"
+        app:layout_constraintHeight_percent="0.6"
         tools:visibility="visible">
 
         <TextView
@@ -204,7 +281,6 @@
             app:layout_constraintBottom_toTopOf="@id/layoutEnviar"
             app:layout_constraintTop_toBottomOf="@id/tituloChat" />
 
-        <!-- Barra de envío manual para el chat (Separada de la voz) -->
         <LinearLayout
             android:id="@+id/layoutEnviar"
             android:layout_width="match_parent"

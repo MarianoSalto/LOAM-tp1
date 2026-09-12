@@ -12,7 +12,6 @@ import android.widget.MediaController
 import android.widget.Toast
 import android.widget.VideoView
 import androidx.activity.result.contract.ActivityResultContracts
-import com.example.primertpdeappmoviles.R
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -20,17 +19,17 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.primertpdeappmoviles.R
+import com.example.primertpdeappmoviles.data.datasouce.BatteryDataSource
+import com.example.primertpdeappmoviles.data.remote.RetrofitClient
+import com.example.primertpdeappmoviles.data.repository.BatteryRepositoryImpl
+import com.example.primertpdeappmoviles.data.repository.ClimaRepositoryImpl
 import com.example.primertpdeappmoviles.databinding.FragmentABinding
+import com.example.primertpdeappmoviles.domain.model.ClimaUiState
+import com.example.primertpdeappmoviles.domain.usecase.*
 import com.example.primertpdeappmoviles.presentation.ChatAdapter
 import com.example.primertpdeappmoviles.presentation.ChatViewModel
-import com.example.primertpdeappmoviles.data.datasouce.BatteryDataSource
-import com.example.primertpdeappmoviles.data.repository.BatteryRepositoryImpl
-import com.example.primertpdeappmoviles.domain.usecase.EstimateBatteryUseCase
-import com.example.primertpdeappmoviles.domain.usecase.GetBatteryInfoUseCase
-import com.example.primertpdeappmoviles.domain.usecase.ProcesoComandoVosUsecase
-import com.example.primertpdeappmoviles.presentation.viewmodel.BatteryViewModel
-import com.example.primertpdeappmoviles.presentation.viewmodel.BatteryViewModelFactory
-import com.example.primertpdeappmoviles.presentation.viewmodel.VosViewModel
+import com.example.primertpdeappmoviles.presentation.viewmodel.*
 import com.example.primertpdeappmoviles.services.AudioService
 import com.example.primertpdeappmoviles.services.FlashlightService
 import kotlinx.coroutines.launch
@@ -80,9 +79,16 @@ class FragmentA : Fragment() {
         BatteryViewModelFactory(getBatteryUseCase, estimateUseCase)
     }
 
+    // ViewModel para el Clima (Clean Architecture)
+    private val climaViewModel: ClimaViewModel by viewModels {
+        val apiService = RetrofitClient.weatherApiService
+        val repository = ClimaRepositoryImpl(apiService)
+        ClimaViewModelFactory(GetClimaUseCase(repository))
+    }
+
     ///CÓDIGO PARA EL COMANDO DE VOS
     // Inyección de dependencia manual o con Hilt/Koin
-    private val viewModel = VosViewModel(ProcesoComandoVosUsecase())
+    private val vosViewModel = VosViewModel(ProcesoComandoVosUsecase())
 
 
     // =================================================
@@ -98,7 +104,7 @@ class FragmentA : Fragment() {
             if (!textoEscuchado.isNullOrEmpty()) {
                 // Procesamos el comando para ejecutar acciones de hardware (Linterna)
                 // Se desvincula del chat para que no aparezca como mensaje
-                viewModel.onVoiceTextReceived(textoEscuchado)
+                vosViewModel.onVoiceTextReceived(textoEscuchado)
             }
         } else {
             Toast.makeText(requireContext(), "No se reconoció ninguna voz", Toast.LENGTH_SHORT)
@@ -187,6 +193,9 @@ class FragmentA : Fragment() {
         // Observamos la información de la batería
         observarBateria()
 
+        // Observamos el clima
+        observarClima()
+
         // Observamos los comandos de voz
         observarVoz()
 
@@ -237,23 +246,15 @@ class FragmentA : Fragment() {
             if (binding.layoutChat.visibility == View.GONE) {
                 // Mostramos el chat.
                 binding.layoutChat.visibility = View.VISIBLE
-                // Ocultamos las herramientas, la guía y el video.
-                binding.layoutHerramientas.visibility = View.GONE
-                binding.tvSubtituloGuia.visibility = View.GONE
-                binding.ivGuiaAyuda.visibility = View.GONE
-                binding.tvSubtituloVideo.visibility = View.GONE
-                binding.layoutVideoContainer.visibility = View.GONE
+                // Ocultamos todo el contenido superior (Herramientas, Guía, Video) usando el ScrollView
+                binding.scrollViewContenido.visibility = View.GONE
                 // Cambiamos el texto del botón
                 binding.btnAsistente.text = "Cerrar Chat"
             } else {
                 // Ocultamos el chat.
                 binding.layoutChat.visibility = View.GONE
-                // Mostramos las herramientas, la guía y el video.
-                binding.layoutHerramientas.visibility = View.VISIBLE
-                binding.tvSubtituloGuia.visibility = View.VISIBLE
-                binding.ivGuiaAyuda.visibility = View.VISIBLE
-                binding.tvSubtituloVideo.visibility = View.VISIBLE
-                binding.layoutVideoContainer.visibility = View.VISIBLE
+                // Mostramos nuevamente el contenido superior
+                binding.scrollViewContenido.visibility = View.VISIBLE
                 // Restauramos el texto del botón
                 binding.btnAsistente.text = "Asistente"
             }
@@ -330,6 +331,9 @@ class FragmentA : Fragment() {
         binding.videoClickOverlay.setOnClickListener {
             mostrarVideoAgrandado()
         }
+
+        // Cargar clima inicial (Ej: General Pico)
+        climaViewModel.loadWeather(-35.6596, -63.7568)
     }
 
 
@@ -466,6 +470,34 @@ class FragmentA : Fragment() {
         // Opcional: Iniciar automáticamente o al hacer clic
         binding.videoAyuda.setOnPreparedListener { mp ->
             mp.isLooping = true // El video se repetirá
+        }
+    }
+
+    // =================================================
+    // OBSERVAR CLIMA
+    // =================================================
+
+    private fun observarClima() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            climaViewModel.uiState.collect { state ->
+                when (state) {
+                    is ClimaUiState.Loading -> {
+                        binding.pbClima.visibility = View.VISIBLE
+                    }
+                    is ClimaUiState.Error -> {
+                        binding.pbClima.visibility = View.GONE
+                        binding.tvCondicion.text = "Error de clima"
+                    }
+                    is ClimaUiState.Success -> {
+                        binding.pbClima.visibility = View.GONE
+                        val data = state.data
+                        binding.tvIconoClima.text = data.conditionIcon
+                        binding.tvTemperatura.text = data.temperature
+                        binding.tvCondicion.text = data.conditionText
+                        binding.tvHumedadViento.text = "💧 Humedad: ${data.humidity} | 💨 Viento: ${data.windSpeed}"
+                    }
+                }
+            }
         }
     }
 
@@ -646,17 +678,17 @@ class FragmentA : Fragment() {
     // =================================================
     private fun observarVoz() {
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.uiState.collect { state ->
+            vosViewModel.uiState.collect { state ->
                 when (state) {
                     is VosViewModel.VoiceUiState.ActionFlashlight -> {
                         // Ejecutamos la acción de la linterna
                         toggleFlashlight(state.turnOn)
                         // Reiniciamos el estado para no repetir la acción
-                        viewModel.resetState()
+                        vosViewModel.resetState()
                     }
                     is VosViewModel.VoiceUiState.Error -> {
                         Toast.makeText(requireContext(), state.errorMessage, Toast.LENGTH_SHORT).show()
-                        viewModel.resetState()
+                        vosViewModel.resetState()
                     }
                     VosViewModel.VoiceUiState.Idle -> { /* No hacer nada */ }
                 }
