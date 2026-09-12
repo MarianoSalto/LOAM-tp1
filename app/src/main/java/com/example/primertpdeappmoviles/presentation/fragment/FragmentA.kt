@@ -1,13 +1,17 @@
 package com.example.primertpdeappmoviles.presentation.fragment
 
+import android.app.Activity
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.speech.RecognizerIntent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.MediaController
 import android.widget.Toast
 import android.widget.VideoView
+import androidx.activity.result.contract.ActivityResultContracts
 import com.example.primertpdeappmoviles.R
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -23,8 +27,10 @@ import com.example.primertpdeappmoviles.data.datasouce.BatteryDataSource
 import com.example.primertpdeappmoviles.data.repository.BatteryRepositoryImpl
 import com.example.primertpdeappmoviles.domain.usecase.EstimateBatteryUseCase
 import com.example.primertpdeappmoviles.domain.usecase.GetBatteryInfoUseCase
+import com.example.primertpdeappmoviles.domain.usecase.ProcesoComandoVosUsecase
 import com.example.primertpdeappmoviles.presentation.viewmodel.BatteryViewModel
 import com.example.primertpdeappmoviles.presentation.viewmodel.BatteryViewModelFactory
+import com.example.primertpdeappmoviles.presentation.viewmodel.VosViewModel
 import com.example.primertpdeappmoviles.services.AudioService
 import com.example.primertpdeappmoviles.services.FlashlightService
 import kotlinx.coroutines.launch
@@ -74,6 +80,33 @@ class FragmentA : Fragment() {
         BatteryViewModelFactory(getBatteryUseCase, estimateUseCase)
     }
 
+    ///CÓDIGO PARA EL COMANDO DE VOS
+    // Inyección de dependencia manual o con Hilt/Koin
+    private val viewModel = VosViewModel(ProcesoComandoVosUsecase())
+
+
+    // =================================================
+    // RECONOCIMIENTO DE VOZ (LAUCHER)
+    // =================================================
+    private val voiceLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            val matches = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            val textoEscuchado = matches?.firstOrNull()
+
+            if (!textoEscuchado.isNullOrEmpty()) {
+                // Procesamos el comando para ejecutar acciones de hardware (Linterna)
+                // Se desvincula del chat para que no aparezca como mensaje
+                viewModel.onVoiceTextReceived(textoEscuchado)
+            }
+        } else {
+            Toast.makeText(requireContext(), "No se reconoció ninguna voz", Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
+
+
 
     // =================================================
     // CREACIÓN DE LA VISTA
@@ -91,6 +124,7 @@ class FragmentA : Fragment() {
             container,
             false
         )
+
 
         // Devolvemos la vista principal.
         return binding.root
@@ -152,6 +186,10 @@ class FragmentA : Fragment() {
 
         // Observamos la información de la batería
         observarBateria()
+
+        // Observamos los comandos de voz
+        observarVoz()
+
 
 
         // =================================================
@@ -221,20 +259,19 @@ class FragmentA : Fragment() {
             }
         }
 
-        // Configuramos el botón para enviar.
+        // Configuramos el botón para enviar del chat principal (Manual)
         binding.btnEnviar.setOnClickListener {
-
-            // Obtenemos el texto escrito.
-            val texto =
-                binding.editMensaje.text.toString()
-
-            // Enviamos el texto al ViewModel.
-            chatViewModel.enviarMensaje(texto)
-
-            // Limpiamos el campo.
-            binding.editMensaje.text.clear()
+            val texto = binding.editMensaje.text.toString()
+            if (texto.isNotBlank()) {
+                chatViewModel.enviarMensaje(texto)
+                binding.editMensaje.text.clear()
+            }
         }
 
+        // NUEVO: Botón para activar el comando de voz (barra superior junto a batería)
+        binding.btnVoz.setOnClickListener {
+            lanzarDictadoPorVoz()
+        }
 
         // =================================================
         // BOTÓN INICIAR AUDIO
@@ -585,5 +622,45 @@ class FragmentA : Fragment() {
 
         // Ejecutamos el comportamiento normal.
         super.onDestroyView()
+    }
+
+    //=============Funciones para el comando de vos=========
+    // =================================================
+// RECONOCIMIENTO DE VOZ (MÉTODO)
+// =================================================
+    private fun lanzarDictadoPorVoz() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, java.util.Locale.getDefault())
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "Te escucho... ¿Qué querés decir?")
+        }
+        try {
+            voiceLauncher.launch(intent)
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Tu dispositivo no soporta reconocimiento de voz", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // =================================================
+    // OBSERVAR COMANDOS DE VOZ
+    // =================================================
+    private fun observarVoz() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.uiState.collect { state ->
+                when (state) {
+                    is VosViewModel.VoiceUiState.ActionFlashlight -> {
+                        // Ejecutamos la acción de la linterna
+                        toggleFlashlight(state.turnOn)
+                        // Reiniciamos el estado para no repetir la acción
+                        viewModel.resetState()
+                    }
+                    is VosViewModel.VoiceUiState.Error -> {
+                        Toast.makeText(requireContext(), state.errorMessage, Toast.LENGTH_SHORT).show()
+                        viewModel.resetState()
+                    }
+                    VosViewModel.VoiceUiState.Idle -> { /* No hacer nada */ }
+                }
+            }
+        }
     }
 }
